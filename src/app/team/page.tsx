@@ -1,6 +1,14 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Teams from "./teams";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useSearchParams } from "next/navigation";
 
 const cards = [
   {
@@ -81,25 +89,6 @@ const cards = [
   },
   {
     description: "Controls",
-    title: "Aishwarya Godse",
-    src: "/team/Aishwarya G .jpg",
-    ctaLink: "https://www.linkedin.com/in/aishwarya-godse-73ba28234/",
-    content: () => {
-      return (
-        <p>
-          Aishwarya Godse is an Electrical and Computer Engineering student
-          focused on robotics and embedded systems. As a member of the Controls
-          Department, she has developed embedded code for robot navigation and
-          mechanism control and is currently advancing her skills in ROS2. With
-          experience in competition analytics, Aishwarya is dedicated to
-          excelling in robotics and leaving a positive impact, particularly in
-          traditionally male-dominated fields.
-        </p>
-      );
-    },
-  },
-  {
-    description: "Controls",
     title: "Amruta Panda",
     src: "/team/Amruta P.jpg",
     ctaLink: "https://www.linkedin.com/in/amruta-panda-700128288/",
@@ -132,23 +121,6 @@ const cards = [
       );
     },
   },
-  {
-    description: "Controls",
-    title: "Himadri Rajput",
-    src: "/team/Himadri.jpg",
-    ctaLink: "",
-    content: () => {
-      return (
-        <p>
-          Himadri Rajput, a Robocon team member, excels in embedded systems
-          coding, where her skills in microcontroller programming, learning ros
-          and its core concepts and firmware development make her a key
-          contributor to the team&apos;s technical innovation.
-        </p>
-      );
-    },
-  },
-
   {
     description: "Controls",
     title: "Jayesh Sangave",
@@ -454,17 +426,69 @@ const cards = [
   },
 ];
 
+const batchOptions = [
+  { value: "2024-25", label: "2024–25 Batch" },
+  { value: "2025-26", label: "2025–26 Batch" },
+] as const;
+
+type BatchValue = (typeof batchOptions)[number]["value"];
+
+const batchCards: Record<BatchValue, typeof cards> = {
+  "2024-25": cards,
+  "2025-26": [],
+};
+
 const page = () => {
+  const searchParams = useSearchParams();
+  const [selectedBatch, setSelectedBatch] = useState<BatchValue>("2024-25");
+
+  useEffect(() => {
+    const batch = searchParams.get("batch");
+    if (batch === "2024-25" || batch === "2025-26") {
+      setSelectedBatch(batch);
+    }
+  }, [searchParams]);
+
+  const currentCards = batchCards[selectedBatch];
+
   return (
     <div className="max-w-7xl mx-auto py-32 px-4 md:px-8 lg:px-10">
-      <h2 className="text-4xl lg:text-5xl font-semibold  mb-4 text-[#c73808]">
-        Meet Our Team 👏
-      </h2>
-      <p className="mb-16 text-white dark:text-neutral-300 text-sm md:text-base max-w-2xl text-justify">
-        Our team is a group of dedicated individuals who are passionate about
-        their work.
-      </p>
-      <Teams cards={cards} />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-4xl lg:text-5xl font-semibold mb-4 text-[#c73808]">
+            Meet Our Team 👏
+          </h2>
+          <p className="text-white dark:text-neutral-300 text-sm md:text-base max-w-2xl text-justify">
+            Our team is a group of dedicated individuals who are passionate about
+            their work.
+          </p>
+        </div>
+        <div className="w-full md:w-64">
+          <Select
+            value={selectedBatch}
+            onValueChange={(value) => setSelectedBatch(value as BatchValue)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select batch" />
+            </SelectTrigger>
+            <SelectContent>
+              {batchOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {selectedBatch === "2024-25" ? (
+        <Teams cards={currentCards} />
+      ) : (
+        <div className="mt-16 text-white dark:text-neutral-300 text-sm md:text-base">
+          Team details for the 2025–26 batch will be added soon.
+        </div>
+      )}
     </div>
   );
 };
