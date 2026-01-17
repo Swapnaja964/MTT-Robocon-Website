@@ -434,11 +434,148 @@ const batchOptions = [
 type BatchValue = (typeof batchOptions)[number]["value"];
 
 const batchCards: Record<BatchValue, typeof cards> = {
-  "2024-25": cards,
-  "2025-26": [],
+  "2024-25": cards.filter((c) => c.title !== "Aaditya Patil"),
+  "2025-26": [
+    ...cards
+      .filter((card) => {
+        const removed = new Set([
+          "Rameshwar Patil",
+          "Aaditya Patil",
+          "Sujal Bafna",
+          "Piyusha Patil",
+        ]);
+        return !removed.has(card.title);
+      })
+      .map((card) => {
+        if (card.title === "Jayesh Sangave") {
+          return { ...card, description: "Captain🧑‍✈️ - Controls" };
+        }
+        if (card.title === "Avnish Deshmukh") {
+          return { ...card, description: "Vice-Captain👨‍✈️ - Controls" };
+        }
+        if (card.title === "Om Gunjal") {
+          return {
+            ...card,
+            description: "Circuits",
+            content: () => {
+              return (
+                <p>
+                  Om Gunjal focuses on embedded systems and circuit design in
+                  the circuits department. In addition to his technical role, he
+                  manages the team’s finances and oversees non-technical
+                  operations, fostering collaboration among team members. His
+                  contributions play a vital role in ensuring the team remains
+                  on track to achieve its goals.
+                </p>
+              );
+            },
+          };
+        }
+        if (card.title === "Harsh Chourasia") {
+          return {
+            ...card,
+            description: "Controls",
+            content: () => {
+              return (
+                <p>
+                  A third-year Computer Science student, he is a skilled ROS
+                  developer with a solid foundation in autonomous robotics and
+                  embedded systems. As a member of the MIT Tech Team, he has
+                  played a crucial role in developing and deploying advanced
+                  robotic solutions, demonstrating expertise in ROS2, real-time
+                  navigation, and control interfaces. He also contributes as a
+                  project and timeline manager for the team.
+                </p>
+              );
+            },
+          };
+        }
+        return card;
+      }),
+    {
+      description: "Controls",
+      title: "Shreeya Suresh",
+      src: "/team/Shreeya.JPG",
+      ctaLink: "https://www.linkedin.com/in/shreeya-suresh-2b92ab348/",
+      content: () => {
+        return (
+          <p>
+            Shreeya is a robotics enthusiast with a strong interest in
+            perception and navigation systems. As a member of the MIT Tech Team,
+            she has previously worked on computer vision and perception,
+            focusing on depth estimation for real-time visual localization. She
+            is familiar with ROS and continues to build her understanding of
+            robotic software frameworks through ongoing learning and
+            experimentation. On the embedded side, Shreeya works with sensors
+            and actuators to implement navigation on STM32 microcontrollers,
+            exploring different navigation algorithms and developing a custom
+            Pure Pursuit implementation on an embedded environment.
+          </p>
+        );
+      },
+    },
+    {
+      description: "Circuits",
+      title: "Kishan Naik",
+      src: "/team/Kishan.JPG",
+      ctaLink: "https://www.linkedin.com/in/kishan-naik-b40b0632b/",
+      content: () => {
+        return (
+          <p>
+            Kishan Naik is an embedded circuit designer at the MIT Tech Team,
+            with a primary focus on PCB design and embedded firmware
+            development. He has designed and developed a customized STM MCM
+            board, demonstrating strong expertise in STM32-based systems and
+            embedded electronics. In addition to his strong debugging skills,
+            Kishan has hands-on experience with register-level coding, allowing
+            for low-level system control and performance optimization. He also
+            contributes to vendor management, playing a key role in coordinating
+            with suppliers and streamlining procurement processes.
+          </p>
+        );
+      },
+    },
+    {
+      description: "Circuits",
+      title: "S. Balamurugan",
+      src: "/team/Bala.JPG",
+      ctaLink: "https://www.linkedin.com/in/s-balamurugan-11598531a/",
+      content: () => {
+        return (
+          <p>
+            S. Balamurugan is an integral member of the MIT Tech Team’s Circuits
+            Department, having joined in August 2023. A second-year BTech
+            student, he possesses a strong foundation in embedded systems, with
+            hands-on experience in embedded programming using HAL drivers and
+            register-level coding. He actively contributes to both technical and
+            operational aspects of the team, including finance and management
+            (F&amp;M) for the club. In addition to his technical
+            responsibilities, Bala is involved in various non-technical
+            initiatives, ensuring the smooth functioning of the team. With a
+            keen interest in robotics and automation, he brings a reliable and
+            versatile approach to his role within the MIT Tech Team.
+          </p>
+        );
+      },
+    },
+    {
+      description: "Non-Tech",
+      title: "Manasee Ambhore",
+      src: "/team/Manasee.jpg",
+      ctaLink: "https://www.linkedin.com/in/manasee-ambhore-87ab65287/",
+      content: () => {
+        return (
+          <p>
+            Manasee Ambhore, a 3rd year BTECH student, works in events
+            management, providing the team various non-technical support.
+          </p>
+        );
+      },
+    },
+  ],
 };
 
-const page = () => {
+const Page = () => {
   const searchParams = useSearchParams();
   const [selectedBatch, setSelectedBatch] = useState<BatchValue>("2024-25");
 
@@ -482,15 +619,15 @@ const page = () => {
         </div>
       </div>
 
-      {selectedBatch === "2024-25" ? (
-        <Teams cards={currentCards} />
+      {currentCards.length > 0 ? (
+        <Teams key={selectedBatch} cards={currentCards} />
       ) : (
         <div className="mt-16 text-white dark:text-neutral-300 text-sm md:text-base">
-          Team details for the 2025–26 batch will be added soon.
+          Team details for the selected batch will be added soon.
         </div>
       )}
     </div>
   );
 };
 
-export default page;
+export default Page;
