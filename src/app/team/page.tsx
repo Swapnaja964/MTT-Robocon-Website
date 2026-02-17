@@ -60,7 +60,7 @@ const cards = [
     },
   },
   {
-    description: "Controls",
+    description: "Circuits",
     title: "Om Gunjal",
     src: "/team/OM_GUNJAL.jpg",
     ctaLink: "https://www.linkedin.com/in/om-gunjal-77b035255/",
@@ -344,13 +344,7 @@ const cards = [
     content: () => {
       return (
         <p>
-          Vedant Pawar is the head of the non-technical team of MTT, serving as
-          the official video editor. With a keen eye for detail and a flair for
-          storytelling, they expertly capture the essence of the team&apos;s
-          hard work, dedication, and spirit. As a third-year student, they
-          bring both creativity and technical precision to every video project,
-          showcasing the team&apos;s journey and accomplishments in a way that
-          resonates with audiences.
+          Vedant Pawar serves as the Head of the Non-Technical Team at MTT, leading strategic planning, branding, outreach, sponsorship coordination, and overall team operations beyond the technical domain. As a third-year student, he ensures seamless execution of events, communications, and team representation. Alongside his leadership responsibilities, he also contributes as the team’s Video Editor, creatively documenting MTT’s journey and milestones while strengthening its digital presence.
         </p>
       );
     },
