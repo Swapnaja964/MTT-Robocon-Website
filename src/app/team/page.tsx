@@ -1,6 +1,14 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Teams from "./teams";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useSearchParams } from "next/navigation";
 
 const cards = [
   {
@@ -147,6 +155,28 @@ const cards = [
           as the operator in 2024. He has worked on projects such as creating a
           custom Omni Pure Pursuit Controller for ROS2, developing a Micromouse
           navigation algorithm, and Research on Wheeled Odometry.
+        </p>
+      );
+    },
+  },
+  {
+    description: "Controls",
+    title: "Jayesh Sangave",
+    src: "/team/Jayesh S.jpg",
+    ctaLink: "https://www.linkedin.com/in/jayesh-sangave-3643992a2/",
+    content: () => {
+      return (
+        <p>
+          Jayesh Sangave is an integral member of the MIT Tech Team&apos;s
+          Controls Department, having joined in August 2023. A second-year BTech
+          CSE student, he has a solid foundation in microcontrollers and
+          embedded systems, contributing to both technical and operational
+          aspects, including finance and management (F&M) for the club.
+          Currently expanding his skill set in computer vision and ROS2, Jayesh
+          is involved in various tech and non-tech initiatives, ensuring the
+          team&apos;s smooth functioning. Alongside his passion for robotics and
+          automation, he has a strong interest in game development, bringing a
+          versatile approach to his role in the team.
         </p>
       );
     },
@@ -394,17 +424,69 @@ const cards = [
   },
 ];
 
+const batchOptions = [
+  { value: "2024-25", label: "2024–25 Batch" },
+  { value: "2025-26", label: "2025–26 Batch" },
+] as const;
+
+type BatchValue = (typeof batchOptions)[number]["value"];
+
+const batchCards: Record<BatchValue, typeof cards> = {
+  "2024-25": cards,
+  "2025-26": [],
+};
+
 const page = () => {
+  const searchParams = useSearchParams();
+  const [selectedBatch, setSelectedBatch] = useState<BatchValue>("2024-25");
+
+  useEffect(() => {
+    const batch = searchParams.get("batch");
+    if (batch === "2024-25" || batch === "2025-26") {
+      setSelectedBatch(batch);
+    }
+  }, [searchParams]);
+
+  const currentCards = batchCards[selectedBatch];
+
   return (
     <div className="max-w-7xl mx-auto py-32 px-4 md:px-8 lg:px-10">
-      <h2 className="text-4xl lg:text-5xl font-semibold  mb-4 text-[#c73808]">
-        Meet Our Team 👏
-      </h2>
-      <p className="mb-16 text-white dark:text-neutral-300 text-sm md:text-base max-w-2xl text-justify">
-        Our team is a group of dedicated individuals who are passionate about
-        their work.
-      </p>
-      <Teams cards={cards} />
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+          <h2 className="text-4xl lg:text-5xl font-semibold mb-4 text-[#c73808]">
+            Meet Our Team 👏
+          </h2>
+          <p className="text-white dark:text-neutral-300 text-sm md:text-base max-w-2xl text-justify">
+            Our team is a group of dedicated individuals who are passionate about
+            their work.
+          </p>
+        </div>
+        <div className="w-full md:w-64">
+          <Select
+            value={selectedBatch}
+            onValueChange={(value) => setSelectedBatch(value as BatchValue)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select batch" />
+            </SelectTrigger>
+            <SelectContent>
+              {batchOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {selectedBatch === "2024-25" ? (
+        <Teams cards={currentCards} />
+      ) : (
+        <div className="mt-16 text-white dark:text-neutral-300 text-sm md:text-base">
+          Team details for the 2025–26 batch will be added soon.
+        </div>
+      )}
     </div>
   );
 };
