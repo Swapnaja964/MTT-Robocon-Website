@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Teams from "./teams";
 import {
   Select,
@@ -575,7 +575,7 @@ const batchCards: Record<BatchValue, typeof cards> = {
   ],
 };
 
-const Page = () => {
+const TeamPageContent = () => {
   const searchParams = useSearchParams();
   const [selectedBatch, setSelectedBatch] = useState<BatchValue>("2024-25");
 
@@ -627,6 +627,20 @@ const Page = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const Page = () => {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-7xl mx-auto py-32 px-4 md:px-8 lg:px-10 text-white dark:text-neutral-300">
+          Loading team...
+        </div>
+      }
+    >
+      <TeamPageContent />
+    </Suspense>
   );
 };
 
