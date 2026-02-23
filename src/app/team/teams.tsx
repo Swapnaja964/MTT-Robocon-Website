@@ -40,12 +40,38 @@ export default function Teams({ cards }: TeamProps) {
   useOutsideClick(ref, () => setActive(null));
 
   // Sort cards by role
-  const facultyMentor = cards.find(card => card.description.includes("Faculty Mentor"));
-  const captain = cards.find(card => card.description.includes("Captain") && !card.description.includes("Vice"));
-  const viceCaptain = cards.find(card => card.description.includes("Vice-Captain"));
-  const otherMembers = cards.filter(card => 
-    !card.description.includes("Faculty Mentor") && 
-    !card.description.includes("Captain")
+  const facultyMentor = cards.find(card => /Faculty Mentor/i.test(card.description));
+  const captainByDesc = cards.find(card => /\bCaptain\b/i.test(card.description) && !/\bVice[-\s]?Captain\b/i.test(card.description));
+  const viceCaptainByDesc = cards.find(card => /\bVice[-\s]?Captain\b/i.test(card.description));
+  const captain =
+    captainByDesc ??
+    cards.find(card => ["Jayesh Sangave", "Harsh Chourasia"].includes(card.title));
+  const viceCaptain =
+    viceCaptainByDesc ??
+    cards.find(card => ["Avnish Deshmukh", "Om Gunjal"].includes(card.title));
+  const controlsMembers = cards.filter(card => 
+    card.description.includes("Controls") &&
+    !card.description.includes("Faculty Mentor") &&
+    (!captain || card.title !== captain.title) &&
+    (!viceCaptain || card.title !== viceCaptain.title)
+  );
+  const circuitsMembers = cards.filter(card => 
+    card.description.includes("Circuits") &&
+    !card.description.includes("Faculty Mentor") &&
+    (!captain || card.title !== captain.title) &&
+    (!viceCaptain || card.title !== viceCaptain.title)
+  );
+  const mechMembers = cards.filter(card => 
+    card.description.includes("Mech") &&
+    !card.description.includes("Faculty Mentor") &&
+    (!captain || card.title !== captain.title) &&
+    (!viceCaptain || card.title !== viceCaptain.title)
+  );
+  const nonTechMembers = cards.filter(card => 
+    card.description.includes("Non-Tech") &&
+    !card.description.includes("Faculty Mentor") &&
+    (!captain || card.title !== captain.title) &&
+    (!viceCaptain || card.title !== viceCaptain.title)
   );
 
   return (
@@ -195,10 +221,27 @@ export default function Teams({ cards }: TeamProps) {
         </div>
 
         {/* Other Members Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {otherMembers.map((card) => (
-            <TeamCard key={card.title} card={card} id={id} setActive={setActive} />
-          ))}
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {controlsMembers.map((card) => (
+              <TeamCard key={card.title} card={card} id={id} setActive={setActive} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {circuitsMembers.map((card) => (
+              <TeamCard key={card.title} card={card} id={id} setActive={setActive} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {mechMembers.map((card) => (
+              <TeamCard key={card.title} card={card} id={id} setActive={setActive} />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {nonTechMembers.map((card) => (
+              <TeamCard key={card.title} card={card} id={id} setActive={setActive} />
+            ))}
+          </div>
         </div>
       </div>
     </>
