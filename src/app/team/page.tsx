@@ -31,7 +31,7 @@ const cards = [
     },
   },
   {
-    description: "Captain🧑‍✈️ - Controls",
+    description: "Controls",
     title: "Jayesh Sangave",
     src: "/team/Jayesh S.jpg",
     ctaLink:
@@ -54,7 +54,7 @@ const cards = [
     },
   },
   {
-    description: "Vice-Captain👨‍✈️ - Controls",
+    description: "Controls",
     title: "Avnish Deshmukh",
     src: "/team/VIN_0376.JPG",
     ctaLink: "https://www.linkedin.com/in/avnish-deshmukh/",
@@ -68,7 +68,7 @@ const cards = [
     },
   },
   {
-    description: "Circuits",
+    description: "Vice-Captain👨‍✈️ - Circuits",
     title: "Om Gunjal",
     src: "/team/OM_GUNJAL.jpg",
     ctaLink: "https://www.linkedin.com/in/om-gunjal-77b035255/",
@@ -87,7 +87,7 @@ const cards = [
     },
   },
   {
-    description: "Controls",
+    description: "Captain🧑‍✈️ - Controls",
     title: "Harsh Chourasia",
     src: "/team/Harsh C.jpg",
     ctaLink: "https://www.linkedin.com/in/harsh-chourasia-608889281?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app",
@@ -432,7 +432,16 @@ const batchOptions = [
 type BatchValue = (typeof batchOptions)[number]["value"];
 
 const batchCards: Record<BatchValue, typeof cards> = {
-  "2024-25": cards.filter((c) => c.title !== "Aaditya Patil"),
+  "2024-25": cards.filter(
+    (c) =>
+      !new Set([
+        "Aaditya Patil",
+        "Kishan Naik",
+        "Manasee Ambhore",
+        "S.Balamurugan",
+        "Shreeya Suresh",
+      ]).has(c.title)
+  ),
   "2025-26": [
     ...cards
       .filter((card) => {
