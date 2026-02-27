@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 const page = () => {
   return (
     <section className="min-h-screen w-full px-4 md:px-8 lg:px-10 overflow-hidden">
-      <div className="max-w-7xl mx-auto text-center mt-36 mb-10">
+      <div className="w-full text-center mt-36 mb-10">
         <p className="text-3xl lg:text-5xl font-semibold mb-4 text-white">
           Our <span className="text-red-500">Alumni</span>
         </p>
@@ -27,7 +27,7 @@ const page = () => {
           respective careers. We are proud of their accomplishments and the
           positive impact they are making in the world.
         </p>
-        <div className=" gap-6 flex flex-row items-center justify-center mt-12">
+        <div className="w-full mt-12">
           <AlumniSection />
         </div>
       </div>

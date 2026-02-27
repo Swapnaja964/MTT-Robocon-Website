@@ -1,3 +1,4 @@
+import dynamic from "next/dynamic";
 import { FocusCards } from "@/components/ui/focus-cards";
 
 export function AlumniSection() {
@@ -101,5 +102,11 @@ export function AlumniSection() {
       linkedIn: "",
     },
   ];
-  return <FocusCards cards={cards} />;
+  const AlumniMap = dynamic(() => import("@/components/alumni/AlumniMap"), { ssr: false });
+  return (
+    <div className="space-y-12">
+      <AlumniMap cards={cards} />
+      <FocusCards cards={cards} />
+    </div>
+  );
 }
