@@ -71,7 +71,35 @@ export function AlumniSection() {
       designation: "Ph.D in Robotics at Washington University in St. Louis",
       location: "St. Louis, USA",
       linkedIn: "https://www.linkedin.com/in/samarth-kalluraya/",
-    }
+    },
+    {
+      title: "Deepak Kapure",
+      src: "/alumni/deepak-kapure.jpg",
+      designation: "MS Computer Engineering at University of Colorado Boulder",
+      location: "Boulder, CO",
+      linkedIn: "",
+    },
+    {
+      title: "Ashwin Kumat",
+      src: "/alumni/ashwin-kumat.png",
+      designation: "Robotics Engineer II at ArcBest Technology, United States",
+      location: "Fort Smith, Arkansas, Unites States",
+      linkedIn: "https://www.linkedin.com/in/ashwin-kumat/",
+    },
+    {
+      title: "Shashank Tambe",
+      src: "/alumni/shashank-tambe.jpg",
+      designation: "Territory After sales Manager at Hyundai Motor India Ltd",
+      location: "Pune, India",
+      linkedIn: "",
+    },
+    {
+      title: "Dushyant Moghe",
+      src: "/alumni/dushyant-moghe.jpg",
+      designation: "Head Manufacturing Engineering at Varroc Engineering Ltd.",
+      location: "Pune, India",
+      linkedIn: "",
+    },
   ];
   return <FocusCards cards={cards} />;
 }
