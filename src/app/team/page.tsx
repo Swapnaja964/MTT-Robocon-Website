@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/select";
 import { useSearchParams } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 const cards = [
   {
     description: "Faculty Mentor👨🏻‍🏫",
@@ -39,7 +41,7 @@ const cards = [
     content: () => {
       return (
         <p>
-          Jayesh Sangave serves as the Vice Captain of his team, is an integral member of the MIT Tech Team&apos;s
+          Jayesh Sangave serves as the Captain of this team, is an integral member of the MIT Tech Team&apos;s
           Controls Department, having joined in August 2023. A third-year BTech
           CSE student, he has a solid foundation in microcontrollers and
           embedded systems, contributing to both technical and operational
@@ -382,7 +384,7 @@ const cards = [
   {
     description: "Non-Tech",
     title: "Swapnaja Magarde",
-    src: "/team/Swapnaja_id.jpg",
+    src: "/team/Swapnaja_id.jpeg",
     ctaLink: "https://www.linkedin.com/in/swapnaja-magarde-653a98226/",
     content: () => {
       return (
@@ -422,27 +424,39 @@ const cards = [
       );
     },
   },
+  {
+    description: "Mech",
+    title: "Aaditya Patil",
+    src: "/team/Aditya P.jpg",
+    ctaLink: "https://www.linkedin.com/in/aaditya-patil-300444246/",
+    content: () => {
+      return (
+        <p>
+          Aaditya Patil, a robotics engineering student, is skilled in CAD design, mechanical system integration, and industrial manufacturing. As a proactive MIT Tech Team member, he applies hands-on expertise in manufacturing processes, optimizing designs to improve robot&apos;s reliability. Aaditya&apos;s proficiency in 3D modeling and component analysis showcases his practical and theoretical knowledge, demonstrating his dedication to pushing the boundaries of robotics.
+        </p>
+      );
+    },
+  },
 ];
 
 const batchOptions = [
-  { value: "2024-25", label: "2024–25 Batch" },
-  { value: "2025-26", label: "2025–26 Batch" },
+  { value: "current", label: "Current Team" },
+  { value: "2024-25", label: "2024–25 Team" },
 ] as const;
 
-type BatchValue = (typeof batchOptions)[number]["value"];
+type BatchValue = "current" | "2024-25" | "2025-26";
 
-const batchCards: Record<BatchValue, typeof cards> = {
+const batchCards: Record<"current" | "2024-25", typeof cards> = {
   "2024-25": cards.filter(
     (c) =>
       !new Set([
-        "Aaditya Patil",
         "Kishan Naik",
         "Manasee Ambhore",
         "S.Balamurugan",
         "Shreeya Suresh",
       ]).has(c.title)
   ),
-  "2025-26": [
+  current: [
     ...cards
       .filter((card) => {
         const removed = new Set([
@@ -588,16 +602,27 @@ const batchCards: Record<BatchValue, typeof cards> = {
 
 const TeamPageContent = () => {
   const searchParams = useSearchParams();
-  const [selectedBatch, setSelectedBatch] = useState<BatchValue>("2024-25");
+  const raw = searchParams.get("team");
+  const initialBatch = (raw === "2025-26" ? "2025-26" : (raw as BatchValue)) ?? "current";
+  const [selectedBatch, setSelectedBatch] = useState<BatchValue>(initialBatch);
 
   useEffect(() => {
-    const batch = searchParams.get("batch");
-    if (batch === "2024-25" || batch === "2025-26") {
-      setSelectedBatch(batch);
+    const batch = searchParams.get("team");
+    if (batch === "2024-25" || batch === "current" || batch === "2025-26") {
+      setSelectedBatch(batch as BatchValue);
     }
   }, [searchParams]);
 
-  const currentCards = batchCards[selectedBatch];
+  const normalizedKey = selectedBatch === "2025-26" ? "current" : selectedBatch;
+  const uniqByTitle = (arr: typeof cards) => {
+    const s = new Set<string>();
+    return arr.filter((c) => {
+      if (s.has(c.title)) return false;
+      s.add(c.title);
+      return true;
+    });
+  };
+  const currentCards = uniqByTitle(batchCards[normalizedKey as "current" | "2024-25"]);
 
   return (
     <div className="max-w-7xl mx-auto py-32 px-4 md:px-8 lg:px-10">
@@ -613,11 +638,13 @@ const TeamPageContent = () => {
         </div>
         <div className="w-full md:w-64">
           <Select
-            value={selectedBatch}
-            onValueChange={(value) => setSelectedBatch(value as BatchValue)}
+            value={normalizedKey}
+            onValueChange={(value) =>
+              setSelectedBatch(value === "current" ? "2025-26" : (value as BatchValue))
+            }
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select batch" />
+              <SelectValue placeholder="Select team" />
             </SelectTrigger>
             <SelectContent>
               {batchOptions.map((option) => (
