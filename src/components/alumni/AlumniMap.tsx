@@ -2,8 +2,11 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { geoEquirectangular, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
+import type { GeoJsonProperties } from "geojson";
+import type { Topology, Objects, GeometryObject } from "topojson-specification";
 import { select } from "d3-selection";
 import { zoom as d3zoom, zoomIdentity } from "d3-zoom";
+import { motion } from "motion/react";
 
 type AlumniCard = {
   title: string;
@@ -63,25 +66,23 @@ function lookupCoords(location: string): { lat: number; lng: number } | null {
   return null;
 }
 
-// Controlled equirectangular projection used for BOTH background and pins.
-function projectPointToViewBox(lat: number, lng: number, viewWidth: number, viewHeight: number) {
-  const x = ((lng + 180) / 360) * viewWidth;
-  const y = ((90 - lat) / 180) * viewHeight;
-  return { x, y };
-}
+// Projection handled by d3-geo; helper removed.
 
 export default function AlumniMap({ cards, accent = "#c73808" }: Props) {
   const viewWidth = WIDTH;
   const viewHeight = HEIGHT;
 
   const [land, setLand] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [hoveredKey, setHoveredKey] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const world = (await import("world-atlas/countries-110m.json")).default as any;
-        const landFc = feature(world, world.objects.countries) as GeoJSON.FeatureCollection;
+        const worldRaw = (await import("world-atlas/countries-110m.json")).default as unknown;
+        const worldTopo = worldRaw as Topology<Objects<GeoJsonProperties>>;
+        const countriesObj = (worldRaw as { objects: { countries: GeometryObject } }).objects.countries;
+        const landFc = feature(worldTopo, countriesObj) as unknown as GeoJSON.FeatureCollection;
         if (mounted) setLand(landFc);
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -100,23 +101,25 @@ export default function AlumniMap({ cards, accent = "#c73808" }: Props) {
 
   const pathGen = useMemo(() => (projection ? geoPath(projection) : null), [projection]);
 
-  const points = useMemo(() => {
-    if (!projection) return [];
-    return cards
-      .map((c) => {
-        const coords = lookupCoords(c.location);
-        if (!coords) {
-          if (typeof window !== "undefined") {
-            // eslint-disable-next-line no-console
-            console.warn(`[AlumniMap] Unknown location: "${c.location}" for "${c.title}". Please provide lat/lng.`);
-          }
-          return null;
-        }
-        const proj = projection([coords.lng, coords.lat]);
-        if (!proj) return null;
-        return { ...c, pos: { x: proj[0], y: proj[1] } };
-      })
-      .filter(Boolean) as Array<AlumniCard & { pos: { x: number; y: number } }>;
+  const groups = useMemo(() => {
+    if (!projection) return new Map<string, { center: { x: number; y: number }; members: AlumniCard[] }>();
+    const g = new Map<string, { center: { x: number; y: number }; members: AlumniCard[] }>();
+    for (const c of cards) {
+      const coords = lookupCoords(c.location);
+      if (!coords) continue;
+      const proj = projection([coords.lng, coords.lat]);
+      if (!proj) continue;
+      const x = proj[0];
+      const y = proj[1];
+      const key = `${x.toFixed(2)},${y.toFixed(2)}`;
+      const existing = g.get(key);
+      if (existing) {
+        existing.members.push(c);
+      } else {
+        g.set(key, { center: { x, y }, members: [c] });
+      }
+    }
+    return g;
   }, [cards, projection]);
 
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -131,7 +134,7 @@ export default function AlumniMap({ cards, accent = "#c73808" }: Props) {
       .on("zoom", (ev) => {
         gSel.attr("transform", ev.transform.toString());
       });
-    svgSel.call(zoom as any).call(zoom.transform as any, zoomIdentity);
+    svgSel.call(zoom).call(zoom.transform, zoomIdentity);
     return () => {
       svgSel.on(".zoom", null);
     };
@@ -180,16 +183,72 @@ export default function AlumniMap({ cards, accent = "#c73808" }: Props) {
                   })
                 : null}
             </g>
-            {/* Pins */}
-            {points.map((p, i) => (
-              <g key={`${p.title}-${i}`} transform={`translate(${p.pos.x}, ${p.pos.y})`}>
-                <circle r={6} fill={accent} filter="url(#pinGlow)" />
-                <title>
-                  {p.title}
-                  {p.designation ? ` — ${p.designation}` : ""} ({p.location})
-                </title>
-              </g>
-            ))}
+            {/* Pins with cluster + hover radial spread */}
+            {Array.from(groups.entries()).map(([key, { center, members }]) => {
+              const isCluster = members.length > 1;
+              const expanded = isCluster && hoveredKey === key;
+              if (!expanded) {
+                const count = members.length;
+                return (
+                  <g
+                    key={`cluster-${key}`}
+                    transform={`translate(${center.x}, ${center.y})`}
+                    onMouseEnter={() => setHoveredKey(key)}
+                    onMouseLeave={() => setHoveredKey((prev) => (prev === key ? null : prev))}
+                    style={{ cursor: isCluster ? "pointer" : "default" }}
+                  >
+                    <circle r={6} fill={accent} filter="url(#pinGlow)" />
+                    {isCluster && (
+                      <g transform="translate(8,-8)">
+                        <rect rx="3" ry="3" width="18" height="14" fill="#111827" opacity="0.9" />
+                        <text
+                          x={9}
+                          y={10}
+                          textAnchor="middle"
+                          fontSize="10"
+                          fill="#F5F5F5"
+                          style={{ pointerEvents: "none" }}
+                        >
+                          +{count - 1}
+                        </text>
+                      </g>
+                    )}
+                    <title>
+                      {isCluster ? `${members[0].location} — ${count} alumni` : members[0].title}
+                    </title>
+                  </g>
+                );
+              }
+              const total = members.length;
+              const radius = 14;
+              return (
+                <g
+                  key={`expanded-${key}`}
+                  onMouseLeave={() => setHoveredKey((prev) => (prev === key ? null : prev))}
+                >
+                  {members.map((m, idx) => {
+                    const angle = (2 * Math.PI * idx) / total;
+                    const x = center.x + Math.cos(angle) * radius;
+                    const y = center.y + Math.sin(angle) * radius;
+                    return (
+                      <motion.g
+                        key={`${m.title}-${idx}`}
+                        initial={{ x: center.x, y: center.y }}
+                        animate={{ x, y }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        onMouseLeave={() => setHoveredKey((prev) => (prev === key ? null : prev))}
+                      >
+                        <circle r={6} fill={accent} filter="url(#pinGlow)" />
+                        <title>
+                          {m.title}
+                          {m.designation ? ` — ${m.designation}` : ""} ({m.location})
+                        </title>
+                      </motion.g>
+                    );
+                  })}
+                </g>
+              );
+            })}
           </g>
         </svg>
       </div>

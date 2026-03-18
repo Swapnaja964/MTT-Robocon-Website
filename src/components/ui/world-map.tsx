@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { motion } from "motion/react";
 import DottedMap from "dotted-map";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { forceSimulation, forceX, forceY, forceCollide } from "d3-force";
 
 interface MapProps {
   dots?: Array<{
@@ -37,6 +38,28 @@ export default function WorldMap({
     const y = ((90 - lat) / 180) * height; // Latitude projection
     return { x, y };
   };
+
+  type SimNode = { id: string; ox: number; oy: number; x: number; y: number; vx?: number; vy?: number };
+  const adjustedPositions = useMemo(() => {
+    const pins = dots.flatMap((dot, i) => {
+      const s = projectPoint(dot.start.lat, dot.start.lng);
+      const e = projectPoint(dot.end.lat, dot.end.lng);
+      return [
+        { id: `s-${i}`, ox: s.x, oy: s.y, x: s.x, y: s.y } as SimNode,
+        { id: `e-${i}`, ox: e.x, oy: e.y, x: e.x, y: e.y } as SimNode,
+      ];
+    });
+    if (pins.length === 0) return new Map<string, { x: number; y: number }>();
+    const sim = forceSimulation<SimNode>(pins)
+      .force("x", forceX<SimNode>((d) => d.ox).strength(0.1))
+      .force("y", forceY<SimNode>((d) => d.oy).strength(0.1))
+      .force("collide", forceCollide<SimNode>(8))
+      .stop();
+    for (let i = 0; i < 100; i++) sim.tick();
+    const map = new Map<string, { x: number; y: number }>();
+    pins.forEach((p) => map.set(p.id, { x: p.x, y: p.y }));
+    return map;
+  }, [dots]);
 
   const createCurvedPath = (
     start: { x: number; y: number },
@@ -126,14 +149,14 @@ export default function WorldMap({
             {/* Start Point */}
             <g key={`start-${i}`}>
               <circle
-                cx={projectPoint(dot.start.lat, dot.start.lng).x}
-                cy={projectPoint(dot.start.lat, dot.start.lng).y}
+                cx={(adjustedPositions.get(`s-${i}`)?.x ?? projectPoint(dot.start.lat, dot.start.lng).x)}
+                cy={(adjustedPositions.get(`s-${i}`)?.y ?? projectPoint(dot.start.lat, dot.start.lng).y)}
                 r="2"
                 fill={lineColor}
               />
               <circle
-                cx={projectPoint(dot.start.lat, dot.start.lng).x}
-                cy={projectPoint(dot.start.lat, dot.start.lng).y}
+                cx={(adjustedPositions.get(`s-${i}`)?.x ?? projectPoint(dot.start.lat, dot.start.lng).x)}
+                cy={(adjustedPositions.get(`s-${i}`)?.y ?? projectPoint(dot.start.lat, dot.start.lng).y)}
                 r="2"
                 fill={lineColor}
                 opacity="0.5"
@@ -159,14 +182,14 @@ export default function WorldMap({
             {/* End Point */}
             <g key={`end-${i}`}>
               <circle
-                cx={projectPoint(dot.end.lat, dot.end.lng).x}
-                cy={projectPoint(dot.end.lat, dot.end.lng).y}
+                cx={(adjustedPositions.get(`e-${i}`)?.x ?? projectPoint(dot.end.lat, dot.end.lng).x)}
+                cy={(adjustedPositions.get(`e-${i}`)?.y ?? projectPoint(dot.end.lat, dot.end.lng).y)}
                 r="2"
                 fill={lineColor}
               />
               <circle
-                cx={projectPoint(dot.end.lat, dot.end.lng).x}
-                cy={projectPoint(dot.end.lat, dot.end.lng).y}
+                cx={(adjustedPositions.get(`e-${i}`)?.x ?? projectPoint(dot.end.lat, dot.end.lng).x)}
+                cy={(adjustedPositions.get(`e-${i}`)?.y ?? projectPoint(dot.end.lat, dot.end.lng).y)}
                 r="2"
                 fill={lineColor}
                 opacity="0.5"
